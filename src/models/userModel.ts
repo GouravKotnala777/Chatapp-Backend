@@ -1,7 +1,7 @@
 import mongoose, { Model, mongo } from "mongoose";
 
 export interface UserTypes {
-    user_name:string;
+    name:string;
     email:string;
     gender:"male"|"female"|"other";
     mobile:string;
@@ -16,7 +16,7 @@ export interface UserTypes {
 };
 
 const userSchema = new mongoose.Schema<UserTypes>({
-    user_name:{
+    name:{
         type:String,
         require:true
     },
