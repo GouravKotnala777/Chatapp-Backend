@@ -44,3 +44,18 @@ export const login = async(req:Request, res:Response, next:NextFunction) => {
         next(error);
     }
 };
+export const setProfilePicture = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const {profile_image} = req.body;
+
+        console.log(profile_image);
+        
+        console.log("################ 1");
+        console.log(req.file);
+        console.log("################ 2");
+
+        res.status(200).json({success:true, message:"image uploaded"});
+    } catch (error) {
+        next(error);
+    }
+};
