@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/userModel";
+import { ErrorHandler } from "../utils/ErrorHandler";
 
 export const register = async(req:Request, res:Response, next:NextFunction) => {
     try {
@@ -8,17 +9,11 @@ export const register = async(req:Request, res:Response, next:NextFunction) => {
         console.log({name, email, password, gender, mobile});
         
 
-        if (!name || !email || !password || !gender || !mobile) {
-            res.status(400).json({success:false, message:"all fields are required"});
-            return;
-        };
+        if (!name || !email || !password || !gender || !mobile) return next(new ErrorHandler("all fields are required", 404));
         
         const isUserExist = await User.findOne({email});
 
-        if (isUserExist) {
-            res.status(401).json({success:false, message:"user already exist"});
-            return;
-        };
+        if (isUserExist) return next(new ErrorHandler("user already exist", 401));
 
         await User.create({
             name, email, password, gender, mobile
@@ -26,12 +21,7 @@ export const register = async(req:Request, res:Response, next:NextFunction) => {
 
         res.status(200).json({success:true, message:"User registration successfull"});
     } catch (error) {
-        let message = "";
-        console.log(error);
-        if (error && typeof error === "object" && "message" in error && typeof error.message === "string" && error.message) {
-            message = error.message;
-        }
-        res.status(401).json({success:false, message:message});
+        next(error);
     }
 };
 export const login = async(req:Request, res:Response, next:NextFunction) => {
@@ -41,30 +31,16 @@ export const login = async(req:Request, res:Response, next:NextFunction) => {
         console.log({email, password});
         
 
-        if (!email || !password) {
-            res.status(400).json({success:false, message:"all fields are required"});
-            return;
-        };
+        if (!email || !password) return next(new ErrorHandler("all fields are required", 400));
         
         const isUserExist = await User.findOne({email});
 
-        if (!isUserExist) {
-            res.status(401).json({success:false, message:"Wrong email or password1"});
-            return;
-        };
+        if (!isUserExist) return next(new ErrorHandler("Wrong email or password1", 401));
         
-        if (isUserExist.password !== password) {
-            res.status(401).json({success:false, message:"Wrong email or password2"});
-            return;
-        }
+        if (isUserExist.password !== password) return next(new ErrorHandler("Wrong email or password2", 502));
 
         res.status(200).json({success:true, message:"User login successfull"});
     } catch (error) {
-        let message = "";
-        console.log(error);
-        if (error && typeof error === "object" && "message" in error && typeof error.message === "string" && error.message) {
-            message = error.message;
-        }
-        res.status(401).json({success:false, message:message});
+        next(error);
     }
 };
