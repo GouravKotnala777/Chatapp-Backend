@@ -19,7 +19,6 @@ connectDatabase();
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/chat", chatRouter);
-app.use("/api/v1/chat", chatRouter);
 app.get("/api/v1/test", (req, res) => {
     res.status(200).json({success:true, message:{
         port:PORT,
