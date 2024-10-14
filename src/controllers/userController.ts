@@ -37,7 +37,12 @@ export const login = async(req:Request, res:Response, next:NextFunction) => {
 
         if (!isUserExist) return next(new ErrorHandler("Wrong email or password1", 401));
         
-        if (isUserExist.password !== password) return next(new ErrorHandler("Wrong email or password2", 502));
+        const isPasswordMatched = await isUserExist.comparePassword(password);
+
+        console.log({isPasswordMatched});
+        
+        //if (isUserExist.password !== password) return next(new ErrorHandler("Wrong email or password2", 502));
+        if (!isPasswordMatched) return next(new ErrorHandler("Wrong email or password2", 502));
 
         res.status(200).json({success:true, message:"User login successfull"});
     } catch (error) {

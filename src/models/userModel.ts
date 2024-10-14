@@ -1,4 +1,5 @@
 import mongoose, { Model, mongo } from "mongoose";
+import bcryptjs from "bcryptjs";
 
 export interface UserTypes {
     name:string;
@@ -26,6 +27,8 @@ export interface UserTypes {
     is_varified:boolean;
     varification_token:string|null;
     varification_token_expire:Date|null;
+
+    comparePassword:(password:string) => Promise<boolean>
 };
 
 const userSchema = new mongoose.Schema<UserTypes>(
@@ -118,7 +121,8 @@ const userSchema = new mongoose.Schema<UserTypes>(
         },
         is_varified:{
             type:Boolean,
-            require:true
+            required:true,
+            default:false
         },
         varification_token:{
             type:String
@@ -129,6 +133,20 @@ const userSchema = new mongoose.Schema<UserTypes>(
       },
       { timestamps: true },
 );
+
+userSchema.pre("save", async function (next) {
+  const oldPassword = this.password;
+  if (!this.isModified("password")) return next();
+
+  const hashedPassword = await bcryptjs.hash(oldPassword, Number(process.env.HASH_PASSWORD_SALT as string));
+  this.password = hashedPassword;
+  next();
+});
+
+userSchema.methods.comparePassword = async function(password:string){
+  const comparePassword = await bcryptjs.compare(password, this.password);
+  return comparePassword;
+}
 
 const userModel:Model<UserTypes> = mongoose.models.User || mongoose.model<UserTypes>("User", userSchema);
 
