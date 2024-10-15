@@ -3,6 +3,7 @@ import User from "../models/userModel";
 import { ErrorHandler } from "../utils/ErrorHandler";
 import { cookieOptions } from "../constants/constants";
 import { sendToken } from "../utils/util";
+import { AuthenticatedRequestTypes } from "../types/types";
 
 export const register = async(req:Request, res:Response, next:NextFunction) => {
     try {
@@ -51,6 +52,17 @@ export const login = async(req:Request, res:Response, next:NextFunction) => {
         console.log({sendTokenReturnValue});
         
         res.status(200).json({success:true, message:"User login successfull"});
+    } catch (error) {
+        next(error);
+    }
+};
+export const myProfile = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const user = (req as AuthenticatedRequestTypes).user;
+
+        console.log({user});
+
+        res.status(200).json({success:true, message:user});
     } catch (error) {
         next(error);
     }
