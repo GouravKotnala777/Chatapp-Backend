@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/userModel";
 import { ErrorHandler } from "../utils/ErrorHandler";
+import { cookieOptions } from "../constants/constants";
+import { sendToken } from "../utils/util";
 
 export const register = async(req:Request, res:Response, next:NextFunction) => {
     try {
@@ -44,6 +46,10 @@ export const login = async(req:Request, res:Response, next:NextFunction) => {
         //if (isUserExist.password !== password) return next(new ErrorHandler("Wrong email or password2", 502));
         if (!isPasswordMatched) return next(new ErrorHandler("Wrong email or password2", 502));
 
+        const sendTokenReturnValue = await sendToken(req, res, next, isUserExist);
+
+        console.log({sendTokenReturnValue});
+        
         res.status(200).json({success:true, message:"User login successfull"});
     } catch (error) {
         next(error);
