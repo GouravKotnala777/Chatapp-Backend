@@ -1,25 +1,70 @@
 import { NextFunction, Request, Response } from "express";
-import Message, { MessageStatusType, MessageType, MessageTypes } from "../models/messageModel";
+import Message, { MessageStatusType, MessageTypes } from "../models/messageModel";
 import { ErrorHandler } from "../utils/ErrorHandler";
-import { ObjectId } from "mongoose";
 import { AuthenticatedRequestTypes } from "../types/types";
 import Chat from "../models/chatModel";
+import Content, { ContentMessageType } from "../models/contentModel";
+import mongoose from "mongoose";
 
 export const createMessage = async(req:Request, res:Response, next:NextFunction) => {
     try {
+
+        
         const {
-            sender, chatID, content, attachment, messageType, messageStatus, isForwarded
-        }:{sender:string; chatID:string; content:string; attachment:string[]; messageType:MessageType; messageStatus:MessageStatusType; isForwarded:string;} = req.body;
+            sender, chatID, content, attachment, messageType, messageStatus
+        }:{sender:mongoose.Schema.Types.ObjectId; chatID:mongoose.Schema.Types.ObjectId; content:mongoose.Schema.Types.ObjectId; attachment:string[]; messageType:ContentMessageType; messageStatus:MessageStatusType;} = req.body;
+        
 
-        console.log({sender, chatID, content, attachment, messageType, messageStatus, isForwarded});
+        console.log({sender, chatID, content, attachment, messageType, messageStatus});
 
+        
         if (!sender || !chatID || !messageType || !messageStatus) return next(new ErrorHandler("All fields are required", 400));
 
-        const creatingMessage = await Message.create({
-            sender, chatID, content, attachment, messageType, messageStatus, isForwarded
+        
+        const creatingContent = await Content.create({
+            contentMessage:content,
+            contentType:messageType,
+            createdBy:sender,
+            isForwarded:false
         });
 
-        res.status(200).json({success:true, message:creatingMessage});
+        console.log(creatingContent);
+        if (!creatingContent) return next(new ErrorHandler("Internal server error", 500));
+
+        const creatingMessage = await Message.create({
+            sender, chatID, content:creatingContent._id, attachment, messageStatus, isForwarded:false
+        });
+
+        
+        res.status(200).json({success:true, message:"message has been created"});
+    } catch (error) {
+        console.log(error);
+        
+        next(error);
+    }
+};
+export const forwardMessage = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const {
+            sender, chatID, contentID, attachment, messageStatus
+        }:{sender:string; chatID:string; contentID:string[]; attachment:string[]; messageType:ContentMessageType; messageStatus:MessageStatusType; isForwarded:string;} = req.body;
+
+        console.log({sender, chatID, contentID, attachment, messageStatus});
+
+        if (!sender || !chatID || !messageStatus) return next(new ErrorHandler("All fields are required", 400));
+        if (contentID.length === 0) return next(new ErrorHandler("there is no content to forward", 400));
+        
+        const isChatExist = await Chat.findById(chatID);
+        
+        if (!isChatExist) return next(new ErrorHandler("Chat not exist", 404));
+
+        contentID.forEach(async (cntnt) => {
+            const creatingMessage = await Message.create({
+                sender, chatID, content:cntnt, attachment, messageStatus, isForwarded:true
+            });
+        });
+
+        res.status(200).json({success:true, message:"message has been forwarded"});
     } catch (error) {
         next(error);
     }

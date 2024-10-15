@@ -1,14 +1,12 @@
 import mongoose, { Model } from "mongoose";
 
-export type MessageType = "text"|"image"|"file"|"video"|"audio";
 export type MessageStatusType = "sent"|"delivered"|"read";
 
 export interface MessageTypes {
     sender:mongoose.Schema.Types.ObjectId;
     chatID:mongoose.Schema.Types.ObjectId;
-    content:string;
+    content:mongoose.Schema.Types.ObjectId;
     attachment:string;
-    messageType:MessageType;
     messageStatus:MessageStatusType;
     isForwarded:boolean;
     deletedFor:mongoose.Schema.Types.ObjectId[];
@@ -28,16 +26,13 @@ const messageSchema = new mongoose.Schema<MessageTypes>({
         required:true
     },
     content:{
-        type:String
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Content",
+        required:true
     },
     attachment:[{
         type:String
     }],
-    messageType:{
-        type:String,
-        enum:["text", "image", "file", "video", "audio"],
-        defautl:"text"
-    },
     messageStatus:{
         type:String,
         enum:["sent", "delivered", "read"],

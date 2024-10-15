@@ -14,7 +14,6 @@ interface ChatTypes {
 const chatSchema = new mongoose.Schema<ChatTypes>({
     chatName:{
         type:String,
-        required:true,
         maxlength:99
     },
     admin:[{

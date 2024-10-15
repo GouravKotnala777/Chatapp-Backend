@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import Chat from "../models/chatModel";
 import { ErrorHandler } from "../utils/ErrorHandler";
-import Message, { MessageStatusType, MessageType } from "../models/messageModel";
+import Message from "../models/messageModel";
 import { AuthenticatedRequestTypes } from "../types/types";
 
 export const createChat = async(req:Request, res:Response, next:NextFunction) => {
-    try {
+    try {        
         const {chatName, members, description, isGroupChat}:{chatName:string; members:string[]; description:string; isGroupChat:boolean;} = req.body;
         const userID = (req as AuthenticatedRequestTypes).user._id;
 
