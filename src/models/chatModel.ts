@@ -2,8 +2,8 @@ import mongoose, { Model } from "mongoose";
 
 interface ChatTypes {
     chatName:string;
-    admin:string[];
-    members:string[];
+    admin:mongoose.Schema.Types.ObjectId[];
+    members:mongoose.Schema.Types.ObjectId[];
     description:string;
     isGroupChat:boolean;
     createdBy:mongoose.Schema.Types.ObjectId;

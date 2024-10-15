@@ -1,7 +1,9 @@
-import mongoose, { Model, mongo } from "mongoose";
+import mongoose, { Model, mongo, ObjectId, Schema } from "mongoose";
 import bcryptjs from "bcryptjs";
+import jsonwebtoken from "jsonwebtoken";
 
 export interface UserTypes {
+    _id:mongoose.Schema.Types.ObjectId;
     name:string;
     email: string;
     password: string;
@@ -28,7 +30,8 @@ export interface UserTypes {
     varification_token:string|null;
     varification_token_expire:Date|null;
 
-    comparePassword:(password:string) => Promise<boolean>
+    comparePassword:(password:string) => Promise<boolean>;
+    generateToken:(userID:Schema.Types.ObjectId) => string;
 };
 
 const userSchema = new mongoose.Schema<UserTypes>(
@@ -146,6 +149,10 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.comparePassword = async function(password:string){
   const comparePassword = await bcryptjs.compare(password, this.password);
   return comparePassword;
+}
+
+userSchema.methods.generateToken = async function (userID:mongoose.Types.ObjectId) {
+  return jsonwebtoken.sign({id:userID}, "thisissecret", {expiresIn:"3d"});
 }
 
 const userModel:Model<UserTypes> = mongoose.models.User || mongoose.model<UserTypes>("User", userSchema);
