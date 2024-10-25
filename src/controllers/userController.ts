@@ -51,7 +51,7 @@ export const login = async(req:Request, res:Response, next:NextFunction) => {
 
         console.log({sendTokenReturnValue});
         
-        res.status(200).json({success:true, message:"User login successfull"});
+        res.status(200).json({success:true, message:isUserExist});
     } catch (error) {
         next(error);
     }
