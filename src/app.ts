@@ -7,13 +7,17 @@ import errorMiddleware from "./middlewares/errorMiddleware";
 import chatRouter from "./routers/chatRouter";
 import cookieParser from "cookie-parser";
 import messageRouter from "./routers/messageRouter";
+import cors from "cors";
 
 const app = express();
 const PORT = 8000;
 
 config({path:"./.env"});
 
-
+app.use(cors({
+    origin:"http://127.0.0.1:5173",
+    credentials:true
+}));
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(cookieParser());

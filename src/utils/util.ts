@@ -5,7 +5,7 @@ import { ErrorHandler } from "./ErrorHandler";
 import { cookieOptions } from "../constants/constants";
 
 
-export const sendToken = (
+export const sendToken = async(
     req:Request,
     res:Response,
     next:NextFunction,
@@ -15,7 +15,9 @@ export const sendToken = (
         __v?: number;
     })) => {
         try {
-            const generatedToken = model.generateToken(model._id);
+            console.log(")))))))))))))))))))))))))))))))");
+            
+            const generatedToken = await model.generateToken(model._id);
         
             if (!generatedToken) return next(new ErrorHandler("Token not generated", 500));
         
