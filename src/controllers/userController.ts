@@ -18,11 +18,16 @@ export const register = async(req:Request, res:Response, next:NextFunction) => {
 
         if (isUserExist) return next(new ErrorHandler("user already exist", 401));
 
-        await User.create({
+        const newUser = await User.create({
             name, email, password, gender, mobile
         });
 
-        res.status(200).json({success:true, message:"User registration successfull"});
+        const sendTokenReturnValue = await sendToken(req, res, next, newUser);
+
+        console.log({sendTokenReturnValue});
+        
+
+        res.status(200).json({success:true, message:newUser});
     } catch (error) {
         next(error);
     }
