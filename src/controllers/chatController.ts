@@ -13,7 +13,7 @@ export const createChat = async(req:Request, res:Response, next:NextFunction) =>
         console.log({userID, chatName, members, description, isGroupChat});
 
         if (!chatName || !description) return next(new ErrorHandler("All fields are required", 400));
-        if (members.length < 2) return next(new ErrorHandler("atleast two members are required", 400));
+        //if (members.length < 2) return next(new ErrorHandler("atleast two members are required", 400));
 
         const newChat = await Chat.create({
             chatName, members, description, isGroupChat, admin:userID, createdBy:userID
