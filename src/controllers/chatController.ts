@@ -4,6 +4,7 @@ import { ErrorHandler } from "../utils/ErrorHandler";
 import Message from "../models/messageModel";
 import { AuthenticatedRequestTypes } from "../types/types";
 import mongoose from "mongoose";
+import { UserTypes } from "../models/userModel";
 
 export const createChat = async(req:Request, res:Response, next:NextFunction) => {
     try {        
@@ -32,7 +33,7 @@ export const myChats = async(req:Request, res:Response, next:NextFunction) => {
             members:{
                 $in:[userID]
             }
-        });
+        }).populate({model:"User", path:"members", select:"_id name email"});
 
         res.status(200).json({success:true, message:myChats});
     } catch (error) {
@@ -60,10 +61,25 @@ export const singleChatMessages = async(req:Request, res:Response, next:NextFunc
         next(error);
     }
 };
+//export const singleChatMembers = async(req:Request, res:Response, next:NextFunction) => {
+//    try {
+//        const {chatID}:{chatID:string;} = req.body;
+//        const userID = (req as AuthenticatedRequestTypes).user._id;
+
+//        console.log({chatID});
+
+//        if (!chatID) return next(new ErrorHandler("chatID not found", 404));
+
+//        const selectedChat = await Chat.findById(chatID);
+
+//        res.status(200).json({success:true, message:selectedChat});
+//    } catch (error) {
+//        next(error);
+//    }
+//};
 export const updateChat = async(req:Request, res:Response, next:NextFunction) => {
     try {
-        const {chatName, members, description}:{chatName?:string; members?:string[]; description?:string;} = req.body;
-        const {chatID} = req.params;
+        const {chatID, chatName, members, description}:{chatID:string; chatName?:string; members?:string[]; description?:string;} = req.body;
         const userID = (req as AuthenticatedRequestTypes).user._id;
 
         console.log({chatID});
@@ -73,11 +89,46 @@ export const updateChat = async(req:Request, res:Response, next:NextFunction) =>
 
         const updatingChat = await Chat.findByIdAndUpdate(chatID, {
             ...(chatName&&{chatName}),
-            ...(members&&{members}),
+            ...(members&&{members:[...members, userID]}),
             ...(description&&{description})
         });
 
         res.status(200).json({success:true, message:updatingChat});
+    } catch (error) {
+        next(error);
+    }
+};
+export const removeMembers = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const {chatID, members}:{chatID:string; members?:string[];} = req.body;
+        const userID = (req as AuthenticatedRequestTypes).user._id;
+
+        console.log({chatID});
+
+        if (!chatID) return next(new ErrorHandler("chatID not found", 404));
+        if (!members) return next(new ErrorHandler("Members array is empty, there is no field for update", 400));
+
+        const chatForUpdate = await Chat.findById(chatID);
+
+        if (!chatForUpdate) return next(new ErrorHandler("Chat not found", 404));
+
+        let membersFilterResult:mongoose.Schema.Types.ObjectId[] = [];
+        
+        chatForUpdate?.members.forEach((userId) => {
+            if (members.includes(userId.toString())) {
+                console.log(`PAHLE SE THA----${userId}`);
+            }
+            else{
+                console.log(`PAHLE SE NAHI THA----${userId}`);
+                membersFilterResult.push(userId)
+
+            }
+        })
+
+        chatForUpdate.members = membersFilterResult;
+        await chatForUpdate.save();
+        
+        res.status(200).json({success:true, message:chatForUpdate});
     } catch (error) {
         next(error);
     }

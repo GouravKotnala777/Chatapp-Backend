@@ -87,3 +87,18 @@ export const setProfilePicture = async(req:Request, res:Response, next:NextFunct
         next(error);
     }
 };
+export const myFriends = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const userID = (req as AuthenticatedRequestTypes).user._id;
+        const user = await User.findById(userID).populate({model:"User", path:"friends", select:"_id name email phone profilePicture coverPicture bio"});
+
+        const myFriends = user?.friends;
+
+        //console.log({myFriends});
+        
+        res.status(200).json({success:true, message:myFriends});
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
