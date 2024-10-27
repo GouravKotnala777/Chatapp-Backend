@@ -17,7 +17,7 @@ export const createChat = async(req:Request, res:Response, next:NextFunction) =>
         //if (members.length < 2) return next(new ErrorHandler("atleast two members are required", 400));
 
         const newChat = await Chat.create({
-            chatName, members, description, isGroupChat, admin:userID, createdBy:userID
+            chatName, members:[...members, userID], description, isGroupChat, admin:userID, createdBy:userID
         });
 
         res.status(200).json({success:true, message:newChat});
