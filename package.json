@@ -4,6 +4,8 @@
   "description": "a chat application",
   "main": "index.js",
   "scripts": {
+    "build":"tsc",
+    "dev":"node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
