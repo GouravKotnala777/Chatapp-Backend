@@ -7,6 +7,7 @@ export interface UserTypes {
     name:string;
     email: string;
     password: string;
+    mobile:string;
     profilePicture: string;
     coverPicture: string;
     bio: string;
@@ -16,10 +17,7 @@ export interface UserTypes {
     };
     gender: "male"|"female"|"other";
     friends: string[];
-    friendRequests:{
-        userId:string;
-        status:"pending"|"accepted"|"rejected";
-    }[];
+    friendRequests:mongoose.Schema.Types.ObjectId[];
     posts:string[];
     notifications: string[];
     chats: string[];
@@ -53,6 +51,11 @@ const userSchema = new mongoose.Schema<UserTypes>(
           required: true,
           minlength: 6,
         },
+        mobile:{
+          type:String,
+          required:true,
+          minlength:10
+        },
         profilePicture: {
           type: String,
           default: "",
@@ -82,15 +85,8 @@ const userSchema = new mongoose.Schema<UserTypes>(
         ],
         friendRequests: [
           {
-            userId: {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: "User",
-            },
-            status: {
-              type: String,
-              enum: ["pending", "accepted", "rejected"],
-              default: "pending",
-            },
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Request",
           },
         ],
         posts: [

@@ -4,6 +4,7 @@ import { ErrorHandler } from "../utils/ErrorHandler";
 import { cookieOptions } from "../constants/constants";
 import { sendToken } from "../utils/util";
 import { AuthenticatedRequestTypes } from "../types/types";
+import RequestModel, { FriendRequestStatusType } from "../models/requestModel";
 
 export const register = async(req:Request, res:Response, next:NextFunction) => {
     try {
@@ -90,13 +91,89 @@ export const setProfilePicture = async(req:Request, res:Response, next:NextFunct
 export const myFriends = async(req:Request, res:Response, next:NextFunction) => {
     try {
         const userID = (req as AuthenticatedRequestTypes).user._id;
-        const user = await User.findById(userID).populate({model:"User", path:"friends", select:"_id name email phone profilePicture coverPicture bio"});
+        const user = await User.findById(userID).populate({model:"User", path:"friends", select:"_id name email mobile profilePicture coverPicture bio"});
 
         const myFriends = user?.friends;
 
         //console.log({myFriends});
         
         res.status(200).json({success:true, message:myFriends});
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+export const searchUser = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const {searchQuery}:{searchQuery:string;} = req.body;
+        //const userID = (req as AuthenticatedRequestTypes).user._id;
+
+        console.log({searchQuery});
+        
+
+        const searchedUser = await User.find({
+            email:{
+                $regex:searchQuery,
+                $options:"i"
+            }
+        }).select("_id name email");
+
+        if (!searchedUser) return next(new ErrorHandler("User not found", 404));
+
+        
+        
+        res.status(200).json({success:true, message:searchedUser});
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+export const sendFriendRequest = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const {searchedUserIDArray}:{searchedUserIDArray:string[];} = req.body;
+        const userID = (req as AuthenticatedRequestTypes).user._id;
+        
+
+        console.log({searchedUserIDArray});
+        
+
+        searchedUserIDArray.forEach(async(searchedUserID) => {
+            const createRequest = await RequestModel.create({
+                from:userID,
+                to:searchedUserID
+            });
+            const findUserAndUpdate = await User.findByIdAndUpdate(searchedUserID, {
+                $push:{friendRequests:createRequest._id}
+            }, {new:true});
+    
+            if (!findUserAndUpdate) return next(new ErrorHandler("Error occured", 500));
+        })
+        
+        
+        res.status(200).json({success:true, message:"findUserAndUpdate"});
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+export const replyFriendRequest = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const {friendRequestID, status}:{friendRequestID:string; status:FriendRequestStatusType;} = req.body;
+        const userID = (req as AuthenticatedRequestTypes).user._id;
+        
+        const findRequestAndUpdate = await RequestModel.findByIdAndUpdate(friendRequestID, {
+            status
+        });
+        
+        if (!findRequestAndUpdate) return next(new ErrorHandler("Request not found", 404));
+
+        const findUserAndUpdate = await User.findByIdAndUpdate(userID, {
+            $pull:{friendRequests:findRequestAndUpdate._id}
+        }, {new:true});
+
+        if (!findUserAndUpdate) return next(new ErrorHandler("Error occured", 500));
+        
+        res.status(200).json({success:true, message:findUserAndUpdate});
     } catch (error) {
         console.log(error);
         next(error);
