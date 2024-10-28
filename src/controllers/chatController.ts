@@ -177,14 +177,13 @@ export const addRemoveAdmin = async(req:Request, res:Response, next:NextFunction
 };
 export const deleteChat = async(req:Request, res:Response, next:NextFunction) => {
     try {
-        const {chatID} = req.params;
-        const userID = (req as AuthenticatedRequestTypes).user._id;
-
-        console.log({chatID});
+        const {chatID} = req.body;
 
         if (!chatID) return next(new ErrorHandler("chatID not found", 404));
-
+        
         const deletingChat = await Chat.findByIdAndDelete(chatID);
+        
+        if (!deletingChat) return next(new ErrorHandler("Chat not found", 404));
 
         res.status(200).json({success:true, message:deletingChat});
     } catch (error) {
