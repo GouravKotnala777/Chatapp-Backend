@@ -1,5 +1,5 @@
 import express from "express";
-import { login, myFriends, myProfile, register, replyFriendRequest, searchUser, sendFriendRequest, setProfilePicture } from "../controllers/userController";
+import { allReceivedFriendRequests, login, myFriends, myProfile, register, replyFriendRequest, searchUser, sendFriendRequest, setProfilePicture } from "../controllers/userController";
 import { upload } from "../middlewares/multer";
 import { isUserAuthenticated } from "../middlewares/auth";
 
@@ -11,7 +11,8 @@ userRouter.route("/set-image").post(isUserAuthenticated, upload.single("profile_
 userRouter.route("/me").get(isUserAuthenticated, myProfile);
 userRouter.route("/friends").get(isUserAuthenticated, myFriends);
 userRouter.route("/search").post(isUserAuthenticated, searchUser);
-userRouter.route("/friends_request").post(isUserAuthenticated, sendFriendRequest)
+userRouter.route("/friends_request").get(isUserAuthenticated, allReceivedFriendRequests)
+                                    .post(isUserAuthenticated, sendFriendRequest)
                                     .put(isUserAuthenticated, replyFriendRequest);
 
 

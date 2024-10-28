@@ -4,7 +4,7 @@ import { ErrorHandler } from "../utils/ErrorHandler";
 import { cookieOptions } from "../constants/constants";
 import { sendToken } from "../utils/util";
 import { AuthenticatedRequestTypes } from "../types/types";
-import RequestModel, { FriendRequestStatusType } from "../models/requestModel";
+import RequestModel, { FriendRequestStatusType, RequestTypesPopulated } from "../models/requestModel";
 
 export const register = async(req:Request, res:Response, next:NextFunction) => {
     try {
@@ -128,6 +128,30 @@ export const searchUser = async(req:Request, res:Response, next:NextFunction) =>
         next(error);
     }
 };
+export const allReceivedFriendRequests = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const userID = (req as AuthenticatedRequestTypes).user._id;
+        const allReceivedFriendRequests = await RequestModel.find({
+            to:userID,
+            status:"pending"
+        }).populate({model:"User", path:"from", select:"_id name email"}) as RequestTypesPopulated[];
+
+        if (allReceivedFriendRequests.length === 0) return next(new ErrorHandler("Request not found", 404));
+
+        const friendRequestsTransformed = allReceivedFriendRequests.map((singleRequest) => (
+            {
+                _id:singleRequest._id,
+                name:singleRequest.from.name,
+                email:singleRequest.from.email,
+                date:singleRequest.createdAt
+            }
+        ));
+        res.status(200).json({success:true, message:friendRequestsTransformed});
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
 export const sendFriendRequest = async(req:Request, res:Response, next:NextFunction) => {
     try {
         const {searchedUserIDArray}:{searchedUserIDArray:string[];} = req.body;
@@ -167,13 +191,30 @@ export const replyFriendRequest = async(req:Request, res:Response, next:NextFunc
         
         if (!findRequestAndUpdate) return next(new ErrorHandler("Request not found", 404));
 
-        const findUserAndUpdate = await User.findByIdAndUpdate(userID, {
-            $pull:{friendRequests:findRequestAndUpdate._id}
-        }, {new:true});
-
-        if (!findUserAndUpdate) return next(new ErrorHandler("Error occured", 500));
+        if (status === "accepted") {
+            const findMeAndUpdate = await User.findByIdAndUpdate(userID, {
+                $pull:{friendRequests:findRequestAndUpdate._id},
+                $push:{friends:findRequestAndUpdate.from}
+            }, {new:true});
+    
+            if (!findMeAndUpdate) return next(new ErrorHandler("Error occured", 500));
+            
+            const findSenderAndUpdate = await User.findByIdAndUpdate(findRequestAndUpdate.from, {
+                $push:{friends:userID}
+            }, {new:true});
+            
+            if (!findSenderAndUpdate) return next(new ErrorHandler("Error occured", 500));
+        }
+        else {
+            const findMeAndUpdate = await User.findByIdAndUpdate(userID, {
+                $pull:{friendRequests:findRequestAndUpdate._id}
+            }, {new:true});
+    
+            if (!findMeAndUpdate) return next(new ErrorHandler("Error occured", 500));    
+        }
         
-        res.status(200).json({success:true, message:findUserAndUpdate});
+        
+        res.status(200).json({success:true, message:"string string string"});
     } catch (error) {
         console.log(error);
         next(error);
