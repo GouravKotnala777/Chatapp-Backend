@@ -44,7 +44,7 @@ export const singleChatMessages = async(req:Request, res:Response, next:NextFunc
     try {
         const {
             chatID
-        } = req.params;
+        }:{chatID:string} = req.body;
         const userID = (req as AuthenticatedRequestTypes).user._id;
 
         console.log({chatID});
@@ -54,7 +54,7 @@ export const singleChatMessages = async(req:Request, res:Response, next:NextFunc
         const selectedChatMessages = await Message.find({
             chatID,
             deletedFor:{$nin:[userID]}
-        });
+        }).populate({model:"Content", path:"content", select:"_id contentMessage createdBy isForwarded contentType"});
 
         res.status(200).json({success:true, message:selectedChatMessages});
     } catch (error) {

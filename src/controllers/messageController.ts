@@ -36,7 +36,7 @@ export const createMessage = async(req:Request, res:Response, next:NextFunction)
         });
 
         
-        res.status(200).json({success:true, message:"message has been created"});
+        res.status(200).json({success:true, message:creatingMessage});
     } catch (error) {
         console.log(error);
         
