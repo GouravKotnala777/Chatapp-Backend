@@ -220,3 +220,43 @@ export const replyFriendRequest = async(req:Request, res:Response, next:NextFunc
         next(error);
     }
 };
+export const removeFriend = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const {friendUserID}:{friendUserID:string;} = req.body;
+        const userID = (req as AuthenticatedRequestTypes).user._id;
+
+        const me = await User.findById(userID);
+
+        if (!me) return next(new ErrorHandler("Me not found", 404));
+
+        const isUserFriend = me.friends.includes(friendUserID);
+
+        if (isUserFriend) {
+            const friendFilterResult = me.friends.filter((frndId) => frndId.toString() !== friendUserID);
+
+            me.friends = friendFilterResult;
+
+            console.log("11111111111111111111");
+            console.log("VALIDATE BEFORE SAVE HATANA HAI");
+
+            //  VALIDATE BEFORE SAVE HATANA HAI
+            
+            await me.save({validateBeforeSave:false}); 
+            console.log("22222222222222222222");
+
+            const removeMeFromUserFriendList = await User.findByIdAndUpdate(friendUserID, {
+                $pull:{friends:userID}
+            });
+
+        }
+        else{
+            const isMeExistInUserFriendListAndUpdate = await User.findByIdAndUpdate(friendUserID, {
+                $pull:{friends:userID}
+            });
+        }
+
+        res.status(200).json({success:true, message:me.friends});
+    } catch (error) {
+        next(error);
+    }
+};
