@@ -1,4 +1,5 @@
 import mongoose, { Model } from "mongoose";
+import { ContentType } from "./contentModel";
 
 export type MessageStatusType = "sent"|"delivered"|"read";
 
@@ -6,6 +7,17 @@ export interface MessageTypes {
     sender:mongoose.Schema.Types.ObjectId;
     chatID:mongoose.Schema.Types.ObjectId;
     content:mongoose.Schema.Types.ObjectId;
+    attachment:string;
+    messageStatus:MessageStatusType;
+    isForwarded:boolean;
+    deletedFor:mongoose.Schema.Types.ObjectId[];
+    createdAt:Date;
+    updatedAt:Date;
+};
+export interface MessageTypesPopulated {
+    sender:mongoose.Schema.Types.ObjectId;
+    chatID:mongoose.Schema.Types.ObjectId;
+    content:ContentType;
     attachment:string;
     messageStatus:MessageStatusType;
     isForwarded:boolean;

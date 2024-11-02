@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import Message, { MessageStatusType, MessageTypes } from "../models/messageModel";
+import Message, { MessageStatusType, MessageTypes, MessageTypesPopulated } from "../models/messageModel";
 import { ErrorHandler } from "../utils/ErrorHandler";
 import { AuthenticatedRequestTypes } from "../types/types";
 import Chat from "../models/chatModel";
@@ -34,9 +34,15 @@ export const createMessage = async(req:Request, res:Response, next:NextFunction)
         const creatingMessage = await Message.create({
             sender, chatID, content:creatingContent._id, attachment, messageStatus, isForwarded:false
         });
+        
+
+        const {contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt} = creatingContent;
+        const transformedMessageData:MessageTypesPopulated = {
+            sender, chatID, attachment:"l", messageStatus, isForwarded, deletedFor:[], createdAt, updatedAt, content:{contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt}
+        }
 
         
-        res.status(200).json({success:true, message:creatingMessage});
+        res.status(200).json({success:true, message:transformedMessageData});
     } catch (error) {
         console.log(error);
         
