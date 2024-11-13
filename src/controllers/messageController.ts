@@ -89,9 +89,12 @@ export const deleteMessagesForMe = async(req:Request, res:Response, next:NextFun
         let deletedForMe:MessageTypes[]|null = [];
 
         messageID.forEach(async (msgID) => {
-            deletedForMe = await Message.findByIdAndUpdate(msgID, {
+            const deleteForMe = await Message.findByIdAndUpdate(msgID, {
                 $push:{deletedFor:userID}
-            })
+            });
+            if (deleteForMe) {
+                deletedForMe.push(deleteForMe);
+            }
         });
 
         res.status(200).json({success:true, message:deletedForMe});
