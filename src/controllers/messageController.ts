@@ -86,17 +86,18 @@ export const deleteMessagesForMe = async(req:Request, res:Response, next:NextFun
 
         if (messageID.length === 0) return next(new ErrorHandler("messageID array is empty", 400));
 
-        let deletedForMe:MessageTypes[]|null = [];
 
-        messageID.forEach(async (msgID) => {
-            const deleteForMe = await Message.findByIdAndUpdate(msgID, {
-                $push:{deletedFor:userID}
-            });
-            if (deleteForMe) {
-                deletedForMe.push(deleteForMe);
-            }
-        });
 
+        const deletedForMe = (await Promise.all(
+            messageID.map(async (msgID) => {
+                const deleteForMe = await Message.findByIdAndUpdate(msgID, {
+                    $push:{deletedFor:userID}
+                });
+                return deleteForMe?._id;
+            })
+        )).filter((result) => result !== undefined);
+
+        console.log({deletedForMe});
         res.status(200).json({success:true, message:deletedForMe});
     } catch (error) {
         next(error);
@@ -113,25 +114,28 @@ export const deleteMessagesForAll = async(req:Request, res:Response, next:NextFu
 
         if (messageID.length === 0) return next(new ErrorHandler("messageID array is empty", 400));
         
-        messageID.forEach(async (msgID) => {
-            const selectedMessage = await Message.findById(msgID);
+        const arrayOfMessageIDs = (await Promise.all(
+            messageID.map(async(msgID) => {
+                const selectedMessage = await Message.findById(msgID);
+                if (selectedMessage) {
+                    if (selectedMessage?.sender.toString() === userID.toString()) {
+                        const messageParentChat = await Chat.findById(chatID);
+                        if (!messageParentChat) return next(new ErrorHandler("Chat not found", 404));
+                        if (messageParentChat.members.length < 2) return next(new ErrorHandler("there are less than 2 members in this chat", 404));
+                        const chatAllMembers = messageParentChat.members;
 
-            if (selectedMessage?.sender.toString() === userID.toString()) {
-                const messageParentChat = await Chat.findById(chatID);
+                        selectedMessage.deletedFor = chatAllMembers;
+                        await selectedMessage.save();
+                    }
+                    else{
+                        console.log(`${msgID} is not created by you!`);
+                    }
+                }
+                return selectedMessage?._id;
+            })
+        )).filter((result) => result !== undefined);
 
-                if (!messageParentChat) return next(new ErrorHandler("Chat not found", 404));
-                if (messageParentChat.members.length < 2) return next(new ErrorHandler("there are less than 2 members in this chat", 404));
-                const chatAllMembers = messageParentChat.members;
-
-                selectedMessage.deletedFor = chatAllMembers;
-                await selectedMessage.save();
-            }
-            else{
-                console.log(`${msgID} is not created by you!`);
-            }
-        });
-
-        res.status(200).json({success:true, message:"deletedForAll completed"});
+        res.status(200).json({success:true, message:arrayOfMessageIDs});
     } catch (error) {
         next(error);
     }
