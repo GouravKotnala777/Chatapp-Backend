@@ -53,7 +53,7 @@ export const forwardMessage = async(req:Request, res:Response, next:NextFunction
     try {
         const {
             sender, chatID, contentID, attachment, messageStatus
-        }:{sender:string; chatID:string; contentID:string[]; attachment:string[]; messageType:ContentMessageType; messageStatus:MessageStatusType; isForwarded:string;} = req.body;
+        }:{sender:string; chatID:string; contentID:string[]; attachment:string[]; messageType:ContentMessageType; messageStatus:MessageStatusType; isForwarded:boolean;} = req.body;
 
         console.log({sender, chatID, contentID, attachment, messageStatus});
 
