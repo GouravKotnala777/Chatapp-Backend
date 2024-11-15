@@ -38,7 +38,7 @@ export const createMessage = async(req:Request, res:Response, next:NextFunction)
 
         const {contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt} = creatingContent;
         const transformedMessageData:MessageTypesPopulated = {
-            sender, chatID, attachment:"l", messageStatus, isForwarded, deletedFor:[], createdAt, updatedAt, content:{contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt}
+            sender, chatID, attachment:[], messageStatus, isForwarded, deletedFor:[], createdAt, updatedAt, content:{contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt}
         }
 
         
@@ -52,23 +52,82 @@ export const createMessage = async(req:Request, res:Response, next:NextFunction)
 export const forwardMessage = async(req:Request, res:Response, next:NextFunction) => {
     try {
         const {
-            sender, chatID, contentID, attachment, messageStatus
-        }:{sender:string; chatID:string; contentID:string[]; attachment:string[]; messageType:ContentMessageType; messageStatus:MessageStatusType; isForwarded:boolean;} = req.body;
+            memberIDs, contentID, attachment, messageStatus
+        }:{memberIDs:string[]; contentID:string[]; attachment:string[]; messageType:ContentMessageType; messageStatus:MessageStatusType; isForwarded:boolean;} = req.body;
+        const userID = (req as AuthenticatedRequestTypes).user._id;
 
-        console.log({sender, chatID, contentID, attachment, messageStatus});
+        console.log({memberIDs, contentID, attachment, messageStatus});
 
-        if (!sender || !chatID || !messageStatus) return next(new ErrorHandler("All fields are required", 400));
-        if (contentID.length === 0) return next(new ErrorHandler("there is no content to forward", 400));
+        if (!messageStatus) return next(new ErrorHandler("All fields are required", 400));
+        if (contentID.length === 0 && attachment.length === 0) return next(new ErrorHandler("there is no content or attachment to forward", 400));
+        if (memberIDs.length === 0) return next(new ErrorHandler("there is no member to forward", 400));
         
-        const isChatExist = await Chat.findById(chatID);
-        
-        if (!isChatExist) return next(new ErrorHandler("Chat not exist", 404));
+        const findChats = await Promise.all(
+            memberIDs.map(async(mmbrID) => {
+                const isChatExist = await Chat.findOne({
+                    isGroupChat:false,
+                    members:{
+                        $all:[mmbrID, userID]
+                    }
+                });
 
-        contentID.forEach(async (cntnt) => {
-            const creatingMessage = await Message.create({
-                sender, chatID, content:cntnt, attachment, messageStatus, isForwarded:true
+                if (!isChatExist) {
+                    const createNewChat = await Chat.create({
+                        chatName:"chatName",
+                        admin:"",
+                        description:"",
+                        members:[userID, mmbrID],
+                        isGroupChat:false,
+                        createdBy:userID
+                    });
+                    
+                    return createNewChat._id;
+                }
+
+                return isChatExist._id;
+            })
+        );
+
+        if (contentID.length !== 0) {
+            findChats.forEach(async(chtID) => {
+                contentID.forEach(async(cntntID) => {
+                    const createForwardedMessage = await Message.create({
+                        chatID:chtID,
+                        sender:userID,
+                        content:cntntID,
+                        attachment:[],
+                        deletedFor:[],
+                        isForwarded:true,
+                        messageStatus:"sent"
+                    })
+                })
             });
-        });
+        }
+        if (attachment.length !== 0) {
+            findChats.forEach(async(chtID) => {
+                attachment.forEach(async(atchmnt) => {
+                    const createForwardedMessage = await Message.create({
+                        chatID:chtID,
+                        sender:userID,
+                        content:"",
+                        attachment:atchmnt,
+                        deletedFor:[],
+                        isForwarded:true,
+                        messageStatus:"sent"
+                    })
+                })
+            });
+        }
+
+        //const isChatExist = await Chat.findById(chatID);
+        
+        //if (!isChatExist) return next(new ErrorHandler("Chat not exist", 404));
+
+        //contentID.forEach(async (cntnt) => {
+        //    const creatingMessage = await Message.create({
+        //        sender, chatID, content:cntnt, attachment, messageStatus, isForwarded:true
+        //    });
+        //});
 
         res.status(200).json({success:true, message:"message has been forwarded"});
     } catch (error) {
