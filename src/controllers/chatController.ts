@@ -14,13 +14,31 @@ export const createChat = async(req:Request, res:Response, next:NextFunction) =>
         console.log({userID, chatName, members, description, isGroupChat});
 
         if (!chatName || !description) return next(new ErrorHandler("All fields are required", 400));
-        //if (members.length < 2) return next(new ErrorHandler("atleast two members are required", 400));
 
-        const newChat = await Chat.create({
-            chatName, members:members ? [...(members), userID]:[userID], description, isGroupChat, admin:userID, createdBy:userID
+        if (isGroupChat === true) {
+            
+            const newGroupChat = await Chat.create({
+                chatName, members:members ? [...(members), userID]:[userID], description, isGroupChat, admin:userID, createdBy:userID
+            });
+
+            return res.status(200).json({success:true, message:newGroupChat}) as unknown as void;
+        }
+
+        const isSingleChatExists = await Chat.findOne({
+            isGroupChat:false,
+            members:{
+                $all:[userID, members[0]]
+            }
         });
 
-        res.status(200).json({success:true, message:newChat});
+        if (!isSingleChatExists) {
+            const newChat = await Chat.create({
+                chatName, members:[...(members), userID], description, isGroupChat, admin:userID, createdBy:userID
+            });
+            return res.status(200).json({success:true, message:newChat}) as unknown as void;
+        }
+        
+        return res.status(200).json({success:true, message:isSingleChatExists}) as unknown as void;
     } catch (error) {
         next(error);
     }
