@@ -7,7 +7,7 @@ export interface MessageTypes {
     sender:mongoose.Schema.Types.ObjectId;
     chatID:mongoose.Schema.Types.ObjectId;
     content:mongoose.Schema.Types.ObjectId;
-    attachment:string;
+    attachment:string[];
     messageStatus:MessageStatusType;
     isForwarded:boolean;
     deletedFor:mongoose.Schema.Types.ObjectId[];
@@ -18,7 +18,7 @@ export interface MessageTypesPopulated {
     sender:mongoose.Schema.Types.ObjectId;
     chatID:mongoose.Schema.Types.ObjectId;
     content:ContentType;
-    attachment:string;
+    attachment:string[];
     messageStatus:MessageStatusType;
     isForwarded:boolean;
     deletedFor:mongoose.Schema.Types.ObjectId[];
@@ -39,8 +39,7 @@ const messageSchema = new mongoose.Schema<MessageTypes>({
     },
     content:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"Content",
-        required:true
+        ref:"Content"
     },
     attachment:[{
         type:String
