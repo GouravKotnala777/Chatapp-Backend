@@ -3,6 +3,8 @@ import { Document, Schema } from "mongoose";
 import { UserTypes } from "../models/userModel";
 import { ErrorHandler } from "./ErrorHandler";
 import { cookieOptions } from "../constants/constants";
+import {v2 as cloudinary} from "cloudinary";
+import fs from "fs";
 
 
 export const sendToken = async(
@@ -27,4 +29,21 @@ export const sendToken = async(
         } catch (error) {
             next(error);
         }
+};
+export const uploadOnCloudinary = async(localFilePath:string, cloudinaryDestinationFolder:string) => {
+    try {
+        if (!localFilePath) return null;
+
+        const res = await cloudinary.uploader.upload(localFilePath, {folder:cloudinaryDestinationFolder});
+
+        if (res.url) {
+            console.log("File is uploaded successfully");
+            fs.unlinkSync(localFilePath);
+        }
+        
+        return res;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
 };

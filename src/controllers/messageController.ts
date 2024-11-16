@@ -5,6 +5,7 @@ import { AuthenticatedRequestTypes } from "../types/types";
 import Chat from "../models/chatModel";
 import Content, { ContentMessageType } from "../models/contentModel";
 import mongoose from "mongoose";
+import { uploadOnCloudinary } from "../utils/util";
 
 export const createMessage = async(req:Request, res:Response, next:NextFunction) => {
     try {
@@ -41,6 +42,54 @@ export const createMessage = async(req:Request, res:Response, next:NextFunction)
             sender, chatID, attachment:[], messageStatus, isForwarded, deletedFor:[], createdAt, updatedAt, content:{contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt}
         }
 
+        
+        res.status(200).json({success:true, message:transformedMessageData});
+    } catch (error) {
+        console.log(error);
+        
+        next(error);
+    }
+};
+export const sendImage = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const {messageType, chatID}:{messageType:ContentMessageType; chatID:mongoose.Schema.Types.ObjectId;} = req.body;
+        const attachment = req.file;
+        const userID = (req as AuthenticatedRequestTypes).user._id;
+        
+
+        console.log({attachment});
+
+        
+        if (!attachment) return next(new ErrorHandler("All fields are required", 400));
+
+        const cloudinaryRes = await uploadOnCloudinary(attachment.path, "Chatapp1/images");
+
+        console.log({cloudinaryRes});
+
+
+        // ------------------------------------------
+
+        const creatingContent = await Content.create({
+            contentMessage:cloudinaryRes?.secure_url,
+            contentType:messageType,
+            createdBy:userID,
+            isForwarded:false
+        });
+
+        console.log(creatingContent);
+        if (!creatingContent) return next(new ErrorHandler("Internal server error", 500));
+
+        const creatingMessage = await Message.create({
+            sender:userID, chatID, content:null, attachment:[creatingContent._id], messageStatus:"sent", isForwarded:false
+        });
+        
+
+        const {contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt} = creatingContent;
+        const transformedMessageData:MessageTypesPopulated = {
+            sender:userID, chatID, attachment:[{contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt}], messageStatus:"sent", isForwarded, deletedFor:[], createdAt, updatedAt
+        }
+        // ---------------------------------------
+        
         
         res.status(200).json({success:true, message:transformedMessageData});
     } catch (error) {

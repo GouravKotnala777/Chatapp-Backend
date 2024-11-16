@@ -6,8 +6,8 @@ export type MessageStatusType = "sent"|"delivered"|"read";
 export interface MessageTypes {
     sender:mongoose.Schema.Types.ObjectId;
     chatID:mongoose.Schema.Types.ObjectId;
-    content:mongoose.Schema.Types.ObjectId;
-    attachment:string[];
+    content?:mongoose.Schema.Types.ObjectId;
+    attachment?:mongoose.Schema.Types.ObjectId[];
     messageStatus:MessageStatusType;
     isForwarded:boolean;
     deletedFor:mongoose.Schema.Types.ObjectId[];
@@ -17,8 +17,8 @@ export interface MessageTypes {
 export interface MessageTypesPopulated {
     sender:mongoose.Schema.Types.ObjectId;
     chatID:mongoose.Schema.Types.ObjectId;
-    content:ContentType;
-    attachment:string[];
+    content?:ContentType;
+    attachment?:ContentType[];
     messageStatus:MessageStatusType;
     isForwarded:boolean;
     deletedFor:mongoose.Schema.Types.ObjectId[];
@@ -42,7 +42,8 @@ const messageSchema = new mongoose.Schema<MessageTypes>({
         ref:"Content"
     },
     attachment:[{
-        type:String
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Content"
     }],
     messageStatus:{
         type:String,

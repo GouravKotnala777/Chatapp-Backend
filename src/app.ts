@@ -8,6 +8,7 @@ import chatRouter from "./routers/chatRouter";
 import cookieParser from "cookie-parser";
 import messageRouter from "./routers/messageRouter";
 import cors from "cors";
+import {v2 as cloudinary} from "cloudinary";
 
 const app = express();
 const PORT = 8000;
@@ -21,6 +22,12 @@ app.use(cors({
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(cookieParser());
+
+cloudinary.config({
+    cloud_name:process.env.CLOUDINARY_CLOUD_NAME as string,
+    api_key:process.env.CLOUDINARY_API_KEY as string,
+    api_secret:process.env.CLOUDINARY_API_SECRET as string
+});
 
 connectDatabase();
 
