@@ -72,7 +72,9 @@ export const singleChatMessages = async(req:Request, res:Response, next:NextFunc
         const selectedChatMessages = await Message.find({
             chatID,
             deletedFor:{$nin:[userID]}
-        }).populate({model:"Content", path:"content", select:"_id contentMessage createdBy isForwarded contentType"});
+        })
+        .populate({model:"Content", path:"content", select:"_id contentMessage createdBy isForwarded contentType"})
+        .populate({model:"Content", path:"attachment", select:"_id contentMessage createdBy isForwarded contentType"});
 
         res.status(200).json({success:true, message:selectedChatMessages});
     } catch (error) {
