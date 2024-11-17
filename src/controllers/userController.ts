@@ -66,7 +66,7 @@ export const myProfile = async(req:Request, res:Response, next:NextFunction) => 
     try {
         const user = (req as AuthenticatedRequestTypes).user;
 
-        console.log({user});
+        //console.log({user});
 
         res.status(200).json({success:true, message:user});
     } catch (error) {
