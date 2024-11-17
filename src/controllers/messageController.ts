@@ -37,9 +37,9 @@ export const createMessage = async(req:Request, res:Response, next:NextFunction)
         });
         
 
-        const {contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt} = creatingContent;
+        const {_id, contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt} = creatingContent;
         const transformedMessageData:MessageTypesPopulated = {
-            sender, chatID, attachment:[], messageStatus, isForwarded, deletedFor:[], createdAt, updatedAt, content:{contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt}
+            _id:creatingMessage._id, sender, chatID, attachment:[], messageStatus, isForwarded, deletedFor:[], createdAt, updatedAt, content:{_id, contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt}
         }
 
         
@@ -84,9 +84,9 @@ export const sendImage = async(req:Request, res:Response, next:NextFunction) => 
         });
         
 
-        const {contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt} = creatingContent;
+        const {_id, contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt} = creatingContent;
         const transformedMessageData:MessageTypesPopulated = {
-            sender:userID, chatID, attachment:[{contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt}], messageStatus:"sent", isForwarded, deletedFor:[], createdAt, updatedAt
+            _id:creatingMessage._id, sender:userID, chatID, attachment:[{_id, contentMessage, contentType, createdBy, isForwarded, createdAt, updatedAt}], messageStatus:"sent", isForwarded, deletedFor:[], createdAt, updatedAt
         }
         // ---------------------------------------
         

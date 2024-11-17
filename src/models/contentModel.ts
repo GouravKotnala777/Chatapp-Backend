@@ -3,6 +3,7 @@ import mongoose, { Model } from "mongoose";
 export type ContentMessageType = "text"|"image"|"file"|"video"|"audio";
 
 export interface ContentType {
+    _id:mongoose.Types.ObjectId|mongoose.Schema.Types.ObjectId;
     contentMessage:string;
     createdBy:mongoose.Schema.Types.ObjectId;
     isForwarded:boolean;

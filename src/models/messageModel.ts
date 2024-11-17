@@ -15,6 +15,7 @@ export interface MessageTypes {
     updatedAt:Date;
 };
 export interface MessageTypesPopulated {
+    _id:mongoose.Types.ObjectId|mongoose.Schema.Types.ObjectId;
     sender:mongoose.Schema.Types.ObjectId;
     chatID:mongoose.Schema.Types.ObjectId;
     content?:ContentType;
