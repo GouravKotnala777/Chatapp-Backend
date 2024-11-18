@@ -6,6 +6,7 @@ import Chat from "../models/chatModel";
 import Content, { ContentMessageType } from "../models/contentModel";
 import mongoose from "mongoose";
 import { uploadOnCloudinary } from "../utils/util";
+import { UploadApiResponse } from "cloudinary";
 
 export const createMessage = async(req:Request, res:Response, next:NextFunction) => {
     try {
@@ -55,6 +56,7 @@ export const sendImage = async(req:Request, res:Response, next:NextFunction) => 
         const {messageType, chatID}:{messageType:ContentMessageType; chatID:mongoose.Schema.Types.ObjectId;} = req.body;
         const attachment = req.file;
         const userID = (req as AuthenticatedRequestTypes).user._id;
+        let cloudinaryRes:UploadApiResponse|null = null;
         
 
         console.log({attachment});
@@ -62,15 +64,31 @@ export const sendImage = async(req:Request, res:Response, next:NextFunction) => 
         
         if (!attachment) return next(new ErrorHandler("All fields are required", 400));
 
-        const cloudinaryRes = await uploadOnCloudinary(attachment.path, "Chatapp1/images");
+        if (messageType === "image") {
+            cloudinaryRes = await uploadOnCloudinary(attachment.path, "Chatapp1/images");
+            console.log({cloudinaryRes});
+        }
+        else if (messageType === "audio" || messageType === "file" || messageType === "video") {
+            console.log(`File format is -->${messageType}<--`);
+        }
+        else {
+            console.log(`Wrong file format -->${messageType}<--`);
+            return next(new ErrorHandler(`Wrong file format -->${messageType}<--`, 400));
+        }
 
-        console.log({cloudinaryRes});
 
+        //const cloudinaryRes = await uploadOnCloudinary(attachment.path, "Chatapp1/images");
+        //console.log({cloudinaryRes});
 
         // ------------------------------------------
 
         const creatingContent = await Content.create({
-            contentMessage:cloudinaryRes?.secure_url,
+            contentMessage:
+                messageType === "image" ?
+                    cloudinaryRes?.secure_url
+                    :
+                    attachment.path
+            ,
             contentType:messageType,
             createdBy:userID,
             isForwarded:false

@@ -31,6 +31,7 @@ cloudinary.config({
 
 connectDatabase();
 
+app.use("/uploads", express.static("uploads"));
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/message", messageRouter);
