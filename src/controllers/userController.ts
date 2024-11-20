@@ -51,12 +51,16 @@ export const login = async(req:Request, res:Response, next:NextFunction) => {
         
         //if (isUserExist.password !== password) return next(new ErrorHandler("Wrong email or password2", 502));
         if (!isPasswordMatched) return next(new ErrorHandler("Wrong email or password2", 502));
-
-        const sendTokenReturnValue = await sendToken(req, res, next, isUserExist);
-
-        console.log({sendTokenReturnValue});
         
-        res.status(200).json({success:true, message:isUserExist});
+        
+        if (isUserExist.is_varified === false) {
+            await sendMail(email, "VERIFY_EMAIL", isUserExist._id, next);
+            res.status(200).json({success:true, message:"Check your email for verification link"});
+        }
+        else{
+            await sendToken(req, res, next, isUserExist);
+            res.status(200).json({success:true, message:isUserExist});
+        }
     } catch (error) {
         next(error);
     }
