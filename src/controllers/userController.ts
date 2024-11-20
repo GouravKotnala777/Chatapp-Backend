@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import User from "../models/userModel";
 import { ErrorHandler } from "../utils/ErrorHandler";
 import { cookieOptions } from "../constants/constants";
-import { sendToken } from "../utils/util";
+import { sendMail, sendToken } from "../utils/util";
 import { AuthenticatedRequestTypes } from "../types/types";
 import RequestModel, { FriendRequestStatusType, RequestTypesPopulated } from "../models/requestModel";
 
@@ -22,13 +22,12 @@ export const register = async(req:Request, res:Response, next:NextFunction) => {
         const newUser = await User.create({
             name, email, password, gender, mobile
         });
-
-        const sendTokenReturnValue = await sendToken(req, res, next, newUser);
-
-        console.log({sendTokenReturnValue});
         
+        // ---------------------------
+        await sendMail(email, "VERIFY_EMAIL", newUser._id, next);
+        // ---------------------------
 
-        res.status(200).json({success:true, message:newUser});
+        res.status(200).json({success:true, message:"Check your email for verification link"});
     } catch (error) {
         next(error);
     }
@@ -256,6 +255,36 @@ export const removeFriend = async(req:Request, res:Response, next:NextFunction) 
         }
 
         res.status(200).json({success:true, message:me.friends});
+    } catch (error) {
+        next(error);
+    }
+};
+export const verify = async(req:Request, res:Response, next:NextFunction) => {
+    try {
+        const {token, emailType}:{token:string; emailType:"VERIFY_EMAIL"|"RESET_PASSWORD"} = req.body;
+
+        const findUserByVerificationToken = await User.findOne({
+            varification_token:token,
+            //varification_token_expire:{$gt:Date.now()},
+            is_varified:false
+        });
+
+        console.log({findUserByVerificationToken});
+        
+
+        if (!findUserByVerificationToken) return next(new ErrorHandler("User not found", 404));
+
+        findUserByVerificationToken.varification_token = null;
+        findUserByVerificationToken.varification_token_expire = null;
+        findUserByVerificationToken.is_varified = true;
+
+        await findUserByVerificationToken.save();
+
+        const sendTokenReturnValue = await sendToken(req, res, next, findUserByVerificationToken);
+
+        console.log({sendTokenReturnValue});
+
+        res.status(200).json({success:true, message:findUserByVerificationToken});
     } catch (error) {
         next(error);
     }
