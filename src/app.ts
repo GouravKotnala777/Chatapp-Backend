@@ -9,11 +9,24 @@ import cookieParser from "cookie-parser";
 import messageRouter from "./routers/messageRouter";
 import cors from "cors";
 import {v2 as cloudinary} from "cloudinary";
+import http from "http";
+import { Server } from "socket.io";
+import { MessageTypesPopulated } from "./models/messageModel";
+import { UserTypes } from "./models/userModel";
+
+config({path:"./.env"});
 
 const app = express();
 const PORT = 8000;
+const server = http.createServer(app);
 
-config({path:"./.env"});
+const io = new Server(server, {
+    cors:{
+        origin:process.env.CLIENT_URL,
+        methods:["GET", "POST"],
+        credentials:true
+    }
+});
 
 app.use(cors({
     origin:process.env.CLIENT_URL,
@@ -42,9 +55,93 @@ app.get("/api/v1/test", (req, res) => {
     }})
 });
 
-
 app.use(errorMiddleware);
 
-app.listen(PORT, () => {
+let users:{[key:string]:{socketID:string; userName:string;}} = {};
+
+io.on("connection", (socket) => {
+    socket.on("registerUser", ({userID, userName}) => {
+        //console.log({userID, userName});
+        
+        if (userID) {
+            users[userID] = {socketID:socket.id, userName}
+            console.log("New user :");
+            console.log(socket.id);
+
+            //socket.on("isOnline", (userID, callback) => {
+            //    const socketID = users[userID]?.socketID;
+            //    if (socketID) {
+            //        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 1");
+            //        callback({ success: true, socketID });
+            //        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 2");
+            //    } else {
+            //        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 1");
+            //        callback({ success: false, message: "User not connected" });
+            //        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 2");
+            //    }
+            //});
+
+
+
+
+            if (userID === "673dae22baca9fe9bbaae2bc") {
+                console.log("::::::::::::::::::::::: 1");
+                console.log("YE MAI HI HOON ISSE NAHI BHEJNA HAI");
+                console.log("::::::::::::::::::::::: 2");
+                
+            }
+            else{
+                console.log("::::::::::::::::::::::: 1");
+                io.to([users["673dae22baca9fe9bbaae2bc"]?.socketID]).emit("setIsOnline", { success: true, socketID:socket.id });
+                console.log("::::::::::::::::::::::: 2");
+            }
+        }
+    });
+
+    socket.on("isOnline", (userID, callback) => {
+        const socketID = users[userID]?.socketID;
+        if (socketID) {
+            console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 1");
+            callback({ success: true, socketID });
+            console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 2");
+        } else {
+            console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 1");
+            callback({ success: false, message: "User not connected" });
+            console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 2");
+        }
+    });
+
+    socket.on("messageSent", ({message, receivers}:{message:MessageTypesPopulated; receivers:UserTypes[];}) => {
+        //console.log("sender => "+ message.sender);
+        //console.log("receivers => "+ receivers);
+        //console.log("message => "+message.content?.contentMessage);
+        io.to(receivers.map(item => users[item._id.toString()].socketID)).emit("messageReceived", {message, receivers});
+    })
+
+
+    socket.on("disconnect", () => {
+        for (let userID in users) {
+            if (users[userID].socketID === socket.id) {
+                delete users[userID];
+                console.log("User left :");
+                console.log(`index = ${userID}, socketID = ${users[userID]?.socketID}`);
+                if (userID === "673dae22baca9fe9bbaae2bc") {
+                    console.log(";;;;;;;;;;;;;;;;;;;;;;; 1");
+                    console.log("YE MAI HI HOON ISSE NAHI HATANA HAI");
+                    console.log(";;;;;;;;;;;;;;;;;;;;;;; 2");
+                    
+                }
+                else{
+                    console.log(";;;;;;;;;;;;;;;;;;;;;;; 1");
+                    io.to([users["673dae22baca9fe9bbaae2bc"]?.socketID]).emit("setIsOnline", { success: false, message:"member is offline" });
+                    console.log(";;;;;;;;;;;;;;;;;;;;;;; 2");
+                }
+                break;
+            }            
+        }
+    });
+})
+
+server.listen(PORT, () => {
     console.log("listening....");
 });
