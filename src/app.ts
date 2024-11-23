@@ -133,7 +133,8 @@ io.on("connection", (socket) => {
                 }
                 else{
                     console.log(";;;;;;;;;;;;;;;;;;;;;;; 1");
-                    io.to([users["673dae22baca9fe9bbaae2bc"]?.socketID]).emit("setIsOnline", { success: false, message:"member is offline" });
+                    //io.to([users["673dae22baca9fe9bbaae2bc"]?.socketID]).emit("setIsOnline", { success: false, message:"member is offline" });
+                    io.emit("setIsOnline", { success: false, message:"member is offline" });
                     console.log(";;;;;;;;;;;;;;;;;;;;;;; 2");
                 }
                 break;
