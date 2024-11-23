@@ -113,6 +113,7 @@ export const searchUser = async(req:Request, res:Response, next:NextFunction) =>
 
         console.log({searchQuery});
         
+        if (!searchQuery) return next(new ErrorHandler("searchQuery is empty string", 400));
 
         const searchedUser = await User.find({
             email:{
