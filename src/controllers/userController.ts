@@ -136,17 +136,29 @@ export const allReceivedFriendRequests = async(req:Request, res:Response, next:N
     try {
         const userID = (req as AuthenticatedRequestTypes).user._id;
         const allReceivedFriendRequests = await RequestModel.find({
-            to:userID,
+            $or:[
+                {from:userID},
+                {to:userID}
+            ],
             status:"pending"
-        }).populate({model:"User", path:"from", select:"_id name email"}) as RequestTypesPopulated[];
+        }).populate({model:"User", path:"from", select:"_id name email"})
+        .populate({model:"User", path:"to", select:"_id name email"}) as RequestTypesPopulated[];
 
         if (allReceivedFriendRequests.length === 0) return next(new ErrorHandler("Request not found", 404));
 
         const friendRequestsTransformed = allReceivedFriendRequests.map((singleRequest) => (
             {
                 _id:singleRequest._id,
-                name:singleRequest.from.name,
-                email:singleRequest.from.email,
+                from:{
+                    _id:singleRequest.from._id,
+                    name:singleRequest.from.name,
+                    email:singleRequest.from.email
+                },
+                to:{
+                    _id:singleRequest.to._id,
+                    name:singleRequest.to.name,
+                    email:singleRequest.to.email
+                },
                 date:singleRequest.createdAt
             }
         ));

@@ -13,7 +13,7 @@ export interface RequestTypes {
 export interface RequestTypesPopulated {
     _id:mongoose.Schema.Types.ObjectId;
     from:{_id:mongoose.Schema.Types.ObjectId; name:string; email:string;};
-    to:mongoose.Schema.Types.ObjectId;
+    to:{_id:mongoose.Schema.Types.ObjectId; name:string; email:string;};
     createdAt:Date;
     updatedAt:Date;
     status:FriendRequestStatusType;
