@@ -5,6 +5,7 @@ import { cookieOptions } from "../constants/constants";
 import { sendMail, sendToken } from "../utils/util";
 import { AuthenticatedRequestTypes } from "../types/types";
 import RequestModel, { FriendRequestStatusType, RequestTypesPopulated } from "../models/requestModel";
+import { sendMessageToSocketId } from "../app";
 
 export const register = async(req:Request, res:Response, next:NextFunction) => {
     try {
@@ -187,7 +188,9 @@ export const sendFriendRequest = async(req:Request, res:Response, next:NextFunct
             }, {new:true});
     
             if (!findUserAndUpdate) return next(new ErrorHandler("Error occured", 500));
-        })
+        });
+
+        sendMessageToSocketId({userIDs:searchedUserIDArray, eventName:"sendFriendRequest", message:"new request"});
         
         
         res.status(200).json({success:true, message:"findUserAndUpdate"});

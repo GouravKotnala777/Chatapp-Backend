@@ -12,7 +12,7 @@ import {v2 as cloudinary} from "cloudinary";
 import http from "http";
 import { Server } from "socket.io";
 import { MessageTypesPopulated } from "./models/messageModel";
-import { UserTypes } from "./models/userModel";
+import User, { UserTypes } from "./models/userModel";
 
 config({path:"./.env"});
 
@@ -59,7 +59,7 @@ app.use(errorMiddleware);
 
 let users:{[key:string]:{socketID:string; userName:string;}} = {};
 
-io.on("connection", (socket) => {
+io.on("connection", async(socket) => {
     socket.on("registerUser", ({userID, userName}) => {
         //console.log({userID, userName});
         
@@ -81,6 +81,9 @@ io.on("connection", (socket) => {
             //    }
             //});
 
+            //const user = User.findByIdAndUpdate(userID, {
+            //    socketID:socket.id
+            //});
 
 
 
@@ -146,3 +149,20 @@ io.on("connection", (socket) => {
 server.listen(PORT, () => {
     console.log("listening....");
 });
+
+export const sendMessageToSocketId = ({userIDs, eventName, message}:{userIDs:string[]; eventName:string; message:string|Record<string, unknown>;}) => {
+    if (io) {
+        const socketIDArray = userIDs.map((id) => {
+            console.log("GGGGGGGGGGGGGGG (1)");
+            console.log(id);
+            console.log(users[id]?.socketID);
+            console.log("GGGGGGGGGGGGGGG (2)");
+            
+            return users[id]?.socketID;
+        });
+        io.to(socketIDArray.filter((sktID) => sktID&&sktID)).emit(eventName, message);
+    }
+    else{
+        console.log(`socket.io not initialized`);
+    }
+};
