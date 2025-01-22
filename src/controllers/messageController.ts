@@ -44,7 +44,7 @@ export const createMessage = async(req:Request, res:Response, next:NextFunction)
         }
 
         
-        res.status(200).json({success:true, message:transformedMessageData});
+        res.status(200).json({success:true, message:"", jsonData:transformedMessageData});
     } catch (error) {
         console.log(error);
         
@@ -109,7 +109,7 @@ export const sendImage = async(req:Request, res:Response, next:NextFunction) => 
         // ---------------------------------------
         
         
-        res.status(200).json({success:true, message:transformedMessageData});
+        res.status(200).json({success:true, message:"", jsonData:transformedMessageData});
     } catch (error) {
         console.log(error);
         
@@ -196,7 +196,7 @@ export const forwardMessage = async(req:Request, res:Response, next:NextFunction
         //    });
         //});
 
-        res.status(200).json({success:true, message:"message has been forwarded"});
+        res.status(200).json({success:true, message:"Message has been forwarded", jsonData:{}});
     } catch (error) {
         next(error);
     }
@@ -224,7 +224,7 @@ export const deleteMessagesForMe = async(req:Request, res:Response, next:NextFun
         )).filter((result) => result !== undefined);
 
         console.log({deletedForMe});
-        res.status(200).json({success:true, message:deletedForMe});
+        res.status(200).json({success:true, message:"", jsonData:deletedForMe});
     } catch (error) {
         next(error);
     }
@@ -261,7 +261,7 @@ export const deleteMessagesForAll = async(req:Request, res:Response, next:NextFu
             })
         )).filter((result) => result !== undefined);
 
-        res.status(200).json({success:true, message:arrayOfMessageIDs});
+        res.status(200).json({success:true, message:"", jsonData:arrayOfMessageIDs});
     } catch (error) {
         next(error);
     }

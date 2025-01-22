@@ -38,7 +38,7 @@ export const createChat = async(req:Request, res:Response, next:NextFunction) =>
             return res.status(200).json({success:true, message:newChat}) as unknown as void;
         }
         
-        return res.status(200).json({success:true, message:isSingleChatExists}) as unknown as void;
+        return res.status(200).json({success:true, message:"", jsonData:isSingleChatExists}) as unknown as void;
     } catch (error) {
         next(error);
     }
@@ -53,7 +53,7 @@ export const myChats = async(req:Request, res:Response, next:NextFunction) => {
             }
         }).populate({model:"User", path:"members", select:"_id name email"});
 
-        res.status(200).json({success:true, message:myChats});
+        res.status(200).json({success:true, message:"", jsonData:myChats});
     } catch (error) {
         next(error);
     }
@@ -76,7 +76,7 @@ export const singleChatMessages = async(req:Request, res:Response, next:NextFunc
         .populate({model:"Content", path:"content", select:"_id contentMessage createdBy isForwarded contentType"})
         .populate({model:"Content", path:"attachment", select:"_id contentMessage createdBy isForwarded contentType"});
 
-        res.status(200).json({success:true, message:selectedChatMessages});
+        res.status(200).json({success:true, message:"", jsonData:selectedChatMessages});
     } catch (error) {
         next(error);
     }
@@ -113,7 +113,7 @@ export const updateChat = async(req:Request, res:Response, next:NextFunction) =>
             ...(description&&{description})
         });
 
-        res.status(200).json({success:true, message:updatingChat});
+        res.status(200).json({success:true, message:"Chat has been updated", jsonData:updatingChat});
     } catch (error) {
         next(error);
     }
@@ -148,7 +148,7 @@ export const removeMembers = async(req:Request, res:Response, next:NextFunction)
         chatForUpdate.members = membersFilterResult;
         await chatForUpdate.save();
         
-        res.status(200).json({success:true, message:chatForUpdate});
+        res.status(200).json({success:true, message:members.length < 2 ? "Member has been removed":"Members has been removed", jsonData:chatForUpdate});
     } catch (error) {
         next(error);
     }
@@ -190,7 +190,7 @@ export const addRemoveAdmin = async(req:Request, res:Response, next:NextFunction
 
         await isChatExist.save();
 
-        res.status(200).json({success:true, message:"new admin added"});
+        res.status(200).json({success:true, message:"New admin added", jsonData:{}});
     } catch (error) {
         next(error);
     }
@@ -205,7 +205,7 @@ export const deleteChat = async(req:Request, res:Response, next:NextFunction) =>
         
         if (!deletingChat) return next(new ErrorHandler("Chat not found", 404));
 
-        res.status(200).json({success:true, message:deletingChat});
+        res.status(200).json({success:true, message:"Chat has been deleted", jsonData:deletingChat});
     } catch (error) {
         next(error);
     }

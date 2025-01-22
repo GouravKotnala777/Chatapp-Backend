@@ -28,7 +28,7 @@ export const register = async(req:Request, res:Response, next:NextFunction) => {
         await sendMail(email, "VERIFY_EMAIL", newUser._id, next);
         // ---------------------------
 
-        res.status(200).json({success:true, message:"Check your email for verification link"});
+        res.status(200).json({success:true, message:"Check your email for verification link", jsonData:{}});
     } catch (error) {
         next(error);
     }
@@ -56,11 +56,11 @@ export const login = async(req:Request, res:Response, next:NextFunction) => {
         
         if (isUserExist.is_varified === false) {
             await sendMail(email, "VERIFY_EMAIL", isUserExist._id, next);
-            res.status(200).json({success:true, message:"Check your email for verification link"});
+            res.status(200).json({success:true, message:"Check your email for verification link", jsonData:{}});
         }
         else{
             await sendToken(req, res, next, isUserExist);
-            res.status(200).json({success:true, message:isUserExist});
+            res.status(200).json({success:true, message:"Login successful", jsonData:isUserExist});
         }
     } catch (error) {
         next(error);
@@ -72,7 +72,7 @@ export const myProfile = async(req:Request, res:Response, next:NextFunction) => 
 
         //console.log({user});
 
-        res.status(200).json({success:true, message:user});
+        res.status(200).json({success:true, message:"", jsonData:user});
     } catch (error) {
         next(error);
     }
@@ -87,7 +87,7 @@ export const setProfilePicture = async(req:Request, res:Response, next:NextFunct
         console.log(req.file);
         console.log("################ 2");
 
-        res.status(200).json({success:true, message:"image uploaded"});
+        res.status(200).json({success:true, message:"image uploaded", jsonData:{}});
     } catch (error) {
         next(error);
     }
@@ -101,7 +101,7 @@ export const myFriends = async(req:Request, res:Response, next:NextFunction) => 
 
         //console.log({myFriends});
         
-        res.status(200).json({success:true, message:myFriends});
+        res.status(200).json({success:true, message:"", jsonData:myFriends});
     } catch (error) {
         console.log(error);
         next(error);
@@ -127,7 +127,7 @@ export const searchUser = async(req:Request, res:Response, next:NextFunction) =>
 
         
         
-        res.status(200).json({success:true, message:searchedUser});
+        res.status(200).json({success:true, message:"", jsonData:searchedUser});
     } catch (error) {
         console.log(error);
         next(error);
@@ -163,7 +163,7 @@ export const allReceivedFriendRequests = async(req:Request, res:Response, next:N
                 date:singleRequest.createdAt
             }
         ));
-        res.status(200).json({success:true, message:friendRequestsTransformed});
+        res.status(200).json({success:true, message:"", jsonData:friendRequestsTransformed});
     } catch (error) {
         console.log(error);
         next(error);
@@ -193,7 +193,7 @@ export const sendFriendRequest = async(req:Request, res:Response, next:NextFunct
         sendMessageToSocketId({userIDs:searchedUserIDArray, eventName:"sendFriendRequest", message:"new request"});
         
         
-        res.status(200).json({success:true, message:"findUserAndUpdate"});
+        res.status(200).json({success:true, message:"Request has been sended", jsonData:{}});
     } catch (error) {
         console.log(error);
         next(error);
@@ -233,7 +233,7 @@ export const replyFriendRequest = async(req:Request, res:Response, next:NextFunc
         }
         
         
-        res.status(200).json({success:true, message:"string string string"});
+        res.status(200).json({success:true, message:"Request accepted", jsonData:{}});
     } catch (error) {
         console.log(error);
         next(error);
@@ -274,7 +274,7 @@ export const removeFriend = async(req:Request, res:Response, next:NextFunction) 
             });
         }
 
-        res.status(200).json({success:true, message:me.friends});
+        res.status(200).json({success:true, message:"Friend removed", jsonData:me.friends});
     } catch (error) {
         next(error);
     }
@@ -304,7 +304,7 @@ export const verify = async(req:Request, res:Response, next:NextFunction) => {
 
         console.log({sendTokenReturnValue});
 
-        res.status(200).json({success:true, message:findUserByVerificationToken});
+        res.status(200).json({success:true, message:"Verification successful", jsonData:findUserByVerificationToken});
     } catch (error) {
         next(error);
     }
