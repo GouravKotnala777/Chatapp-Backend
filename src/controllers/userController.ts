@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from "express";
-import User from "../models/userModel";
+import User, { UserTypes } from "../models/userModel";
 import { ErrorHandler } from "../utils/ErrorHandler";
 import { cookieOptions } from "../constants/constants";
 import { sendMail, sendToken } from "../utils/util";
 import { AuthenticatedRequestTypes } from "../types/types";
 import RequestModel, { FriendRequestStatusType, RequestTypesPopulated } from "../models/requestModel";
 import { sendMessageToSocketId } from "../app";
+import mongoose, { Document } from "mongoose";
 
 export const register = async(req:Request, res:Response, next:NextFunction) => {
     try {
@@ -172,15 +173,14 @@ export const allReceivedFriendRequests = async(req:Request, res:Response, next:N
 export const sendFriendRequest = async(req:Request, res:Response, next:NextFunction) => {
     try {
         const {searchedUserIDArray}:{searchedUserIDArray:string[];} = req.body;
-        const userID = (req as AuthenticatedRequestTypes).user._id;
+        const user = (req as AuthenticatedRequestTypes).user;
         
-
         console.log({searchedUserIDArray});
         
 
-        searchedUserIDArray.forEach(async(searchedUserID) => {
+        const aaa = searchedUserIDArray.map(async(searchedUserID) => {
             const createRequest = await RequestModel.create({
-                from:userID,
+                from:user._id,
                 to:searchedUserID
             });
             const findUserAndUpdate = await User.findByIdAndUpdate(searchedUserID, {
@@ -188,12 +188,35 @@ export const sendFriendRequest = async(req:Request, res:Response, next:NextFunct
             }, {new:true});
     
             if (!findUserAndUpdate) return next(new ErrorHandler("Error occured", 500));
+
+            const singleReq = {
+                _id:createRequest._id,
+                from:{
+                    _id:user._id,
+                    name:user.name,
+                    email:user.email
+                },
+                to:{
+                    _id:findUserAndUpdate._id,
+                    name:findUserAndUpdate.name,
+                    email:findUserAndUpdate.email
+                },
+                date:createRequest.createdAt
+            };
+
+            sendMessageToSocketId({userIDs:[searchedUserID], eventName:"sendFriendRequest", message:singleReq});
+
+            return singleReq;
         });
 
-        sendMessageToSocketId({userIDs:searchedUserIDArray, eventName:"sendFriendRequest", message:"new request"});
+        const findUserAndUpdateArray = await Promise.all(aaa);
+
+        console.log({findUserAndUpdateArray});
         
         
-        res.status(200).json({success:true, message:"Request has been sended", jsonData:{}});
+        
+        
+        res.status(200).json({success:true, message:"Request has been sended", jsonData:findUserAndUpdateArray});
     } catch (error) {
         console.log(error);
         next(error);

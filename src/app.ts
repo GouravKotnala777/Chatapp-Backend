@@ -160,6 +160,9 @@ export const sendMessageToSocketId = ({userIDs, eventName, message}:{userIDs:str
             
             return users[id]?.socketID;
         });
+
+        console.log(socketIDArray.filter((sktID) => sktID&&sktID));
+        
         io.to(socketIDArray.filter((sktID) => sktID&&sktID)).emit(eventName, message);
     }
     else{

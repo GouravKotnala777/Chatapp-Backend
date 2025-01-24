@@ -13,7 +13,7 @@ export const isUserAuthenticated = async(req:Request, res:Response, next:NextFun
         
         //console.log({userTokenFromAuth:userToken});
         
-        if (!userToken) return next(new ErrorHandler("Token not found from cookie", 404));
+        if (!userToken) return next(new ErrorHandler("Token not found", 404));
 
         const varifyToken = jsonwebtoken.verify(userToken, "thisissecret") as JwtPayload;
 
