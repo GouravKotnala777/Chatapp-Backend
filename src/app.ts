@@ -94,9 +94,9 @@ io.on("connection", async(socket) => {
                 
             }
             else{
-                console.log("::::::::::::::::::::::: 1");
+                //console.log("::::::::::::::::::::::: 1");
                 io.to([users["673dae22baca9fe9bbaae2bc"]?.socketID]).emit("setIsOnline", { success: true, socketID:socket.id });
-                console.log("::::::::::::::::::::::: 2");
+                //console.log("::::::::::::::::::::::: 2");
             }
         }
     });
@@ -135,10 +135,10 @@ io.on("connection", async(socket) => {
                     
                 }
                 else{
-                    console.log(";;;;;;;;;;;;;;;;;;;;;;; 1");
+                    //console.log(";;;;;;;;;;;;;;;;;;;;;;; 1");
                     //io.to([users["673dae22baca9fe9bbaae2bc"]?.socketID]).emit("setIsOnline", { success: false, message:"member is offline" });
                     io.emit("setIsOnline", { success: false, message:"member is offline" });
-                    console.log(";;;;;;;;;;;;;;;;;;;;;;; 2");
+                    //console.log(";;;;;;;;;;;;;;;;;;;;;;; 2");
                 }
                 break;
             }            
@@ -156,6 +156,8 @@ export const sendMessageToSocketId = ({userIDs, eventName, message}:{userIDs:str
             console.log("GGGGGGGGGGGGGGG (1)");
             console.log(id);
             console.log(users[id]?.socketID);
+            console.log(eventName);
+            console.log(message);
             console.log("GGGGGGGGGGGGGGG (2)");
             
             return users[id]?.socketID;

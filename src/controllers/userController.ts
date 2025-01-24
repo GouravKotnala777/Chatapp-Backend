@@ -174,9 +174,6 @@ export const sendFriendRequest = async(req:Request, res:Response, next:NextFunct
     try {
         const {searchedUserIDArray}:{searchedUserIDArray:string[];} = req.body;
         const user = (req as AuthenticatedRequestTypes).user;
-        
-        console.log({searchedUserIDArray});
-        
 
         const aaa = searchedUserIDArray.map(async(searchedUserID) => {
             const createRequest = await RequestModel.create({
@@ -211,10 +208,6 @@ export const sendFriendRequest = async(req:Request, res:Response, next:NextFunct
 
         const findUserAndUpdateArray = await Promise.all(aaa);
 
-        console.log({findUserAndUpdateArray});
-        
-        
-        
         
         res.status(200).json({success:true, message:"Request has been sended", jsonData:findUserAndUpdateArray});
     } catch (error) {
@@ -225,7 +218,10 @@ export const sendFriendRequest = async(req:Request, res:Response, next:NextFunct
 export const replyFriendRequest = async(req:Request, res:Response, next:NextFunction) => {
     try {
         const {friendRequestID, status}:{friendRequestID:string; status:FriendRequestStatusType;} = req.body;
-        const userID = (req as AuthenticatedRequestTypes).user._id;
+        const user = (req as AuthenticatedRequestTypes).user;
+
+        console.log({friendRequestID, status});
+        
         
         const findRequestAndUpdate = await RequestModel.findByIdAndUpdate(friendRequestID, {
             status
@@ -234,7 +230,7 @@ export const replyFriendRequest = async(req:Request, res:Response, next:NextFunc
         if (!findRequestAndUpdate) return next(new ErrorHandler("Request not found", 404));
 
         if (status === "accepted") {
-            const findMeAndUpdate = await User.findByIdAndUpdate(userID, {
+            const findMeAndUpdate = await User.findByIdAndUpdate(user._id, {
                 $pull:{friendRequests:findRequestAndUpdate._id},
                 $push:{friends:findRequestAndUpdate.from}
             }, {new:true});
@@ -242,13 +238,18 @@ export const replyFriendRequest = async(req:Request, res:Response, next:NextFunc
             if (!findMeAndUpdate) return next(new ErrorHandler("Error occured", 500));
             
             const findSenderAndUpdate = await User.findByIdAndUpdate(findRequestAndUpdate.from, {
-                $push:{friends:userID}
+                $push:{friends:user._id}
             }, {new:true});
             
             if (!findSenderAndUpdate) return next(new ErrorHandler("Error occured", 500));
+
+            console.log({findRequestAndUpdate});
+            
+
+            sendMessageToSocketId({userIDs:[findRequestAndUpdate.from.toString()], eventName:"replyFriendRequest", message:{requestID:findRequestAndUpdate._id.toString(), requestReceiverName:user.name}});
         }
         else {
-            const findMeAndUpdate = await User.findByIdAndUpdate(userID, {
+            const findMeAndUpdate = await User.findByIdAndUpdate(user._id, {
                 $pull:{friendRequests:findRequestAndUpdate._id}
             }, {new:true});
     
