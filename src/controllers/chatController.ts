@@ -21,7 +21,7 @@ export const createChat = async(req:Request, res:Response, next:NextFunction) =>
                 chatName, members:members ? [...(members), userID]:[userID], description, isGroupChat, admin:userID, createdBy:userID
             });
 
-            return res.status(200).json({success:true, message:newGroupChat}) as unknown as void;
+            return res.status(200).json({success:true, message:`${chatName} group created`, jsonData:newGroupChat}) as unknown as void;
         }
 
         const isSingleChatExists = await Chat.findOne({
@@ -35,7 +35,7 @@ export const createChat = async(req:Request, res:Response, next:NextFunction) =>
             const newChat = await Chat.create({
                 chatName, members:[...(members), userID], description, isGroupChat, admin:userID, createdBy:userID
             });
-            return res.status(200).json({success:true, message:newChat}) as unknown as void;
+            return res.status(200).json({success:true, message:"", jsonData:newChat}) as unknown as void;
         }
         
         return res.status(200).json({success:true, message:"", jsonData:isSingleChatExists}) as unknown as void;
