@@ -176,34 +176,57 @@ export const sendFriendRequest = async(req:Request, res:Response, next:NextFunct
         const user = (req as AuthenticatedRequestTypes).user;
 
         const aaa = searchedUserIDArray.map(async(searchedUserID) => {
-            const createRequest = await RequestModel.create({
-                from:user._id,
-                to:searchedUserID
+            const isRequestAlreadyExists = await RequestModel.findOne({
+                $or:[
+                    {
+                        from:user._id,
+                        to:searchedUserID
+                    },
+                    {
+                        from:searchedUserID,
+                        to:user._id
+                    }
+                ]
             });
-            const findUserAndUpdate = await User.findByIdAndUpdate(searchedUserID, {
-                $push:{friendRequests:createRequest._id}
-            }, {new:true});
+            
+            const isAlreadyFriend = user.friends.includes(searchedUserID);
+
+            console.log({isAlreadyFriend});
+            
+
+            if (isRequestAlreadyExists || isAlreadyFriend) {
+                return;
+            }
+            else{
+                const createRequest = await RequestModel.create({
+                    from:user._id,
+                    to:searchedUserID
+                });
+                const findUserAndUpdate = await User.findByIdAndUpdate(searchedUserID, {
+                    $push:{friendRequests:createRequest._id}
+                }, {new:true});
+        
+                if (!findUserAndUpdate) return next(new ErrorHandler("Error occured", 500));
     
-            if (!findUserAndUpdate) return next(new ErrorHandler("Error occured", 500));
+                const singleReq = {
+                    _id:createRequest._id,
+                    from:{
+                        _id:user._id,
+                        name:user.name,
+                        email:user.email
+                    },
+                    to:{
+                        _id:findUserAndUpdate._id,
+                        name:findUserAndUpdate.name,
+                        email:findUserAndUpdate.email
+                    },
+                    date:createRequest.createdAt
+                };
+    
+                sendMessageToSocketId({userIDs:[searchedUserID], eventName:"sendFriendRequest", message:singleReq});
+                return singleReq;
+            }
 
-            const singleReq = {
-                _id:createRequest._id,
-                from:{
-                    _id:user._id,
-                    name:user.name,
-                    email:user.email
-                },
-                to:{
-                    _id:findUserAndUpdate._id,
-                    name:findUserAndUpdate.name,
-                    email:findUserAndUpdate.email
-                },
-                date:createRequest.createdAt
-            };
-
-            sendMessageToSocketId({userIDs:[searchedUserID], eventName:"sendFriendRequest", message:singleReq});
-
-            return singleReq;
         });
 
         const findUserAndUpdateArray = await Promise.all(aaa);

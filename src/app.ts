@@ -13,6 +13,7 @@ import http from "http";
 import { Server } from "socket.io";
 import { MessageTypesPopulated } from "./models/messageModel";
 import User, { UserTypes } from "./models/userModel";
+import notificationRouter from "./routers/notificationRouter";
 
 config({path:"./.env"});
 
@@ -48,6 +49,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/message", messageRouter);
+app.use("/api/v1/notification", notificationRouter);
 app.get("/api/v1/test", (req, res) => {
     res.status(200).json({success:true, message:{
         port:PORT,
