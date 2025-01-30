@@ -146,7 +146,7 @@ export const allReceivedFriendRequests = async(req:Request, res:Response, next:N
         }).populate({model:"User", path:"from", select:"_id name email"})
         .populate({model:"User", path:"to", select:"_id name email"}) as RequestTypesPopulated[];
 
-        if (allReceivedFriendRequests.length === 0) return next(new ErrorHandler("Request not found", 404));
+        //if (allReceivedFriendRequests.length === 0) return next(new ErrorHandler("", 404));
 
         const friendRequestsTransformed = allReceivedFriendRequests.map((singleRequest) => (
             {
@@ -240,48 +240,76 @@ export const sendFriendRequest = async(req:Request, res:Response, next:NextFunct
 };
 export const replyFriendRequest = async(req:Request, res:Response, next:NextFunction) => {
     try {
+        console.log("----------------- (1)");
+        
         const {friendRequestID, status}:{friendRequestID:string; status:FriendRequestStatusType;} = req.body;
         const user = (req as AuthenticatedRequestTypes).user;
-
+        
         console.log({friendRequestID, status});
+        console.log("----------------- (2)");
         
         
         const findRequestAndUpdate = await RequestModel.findByIdAndUpdate(friendRequestID, {
             status
-        });
+        }, {new:true});
         
+        console.log("----------------- (3)");
         if (!findRequestAndUpdate) return next(new ErrorHandler("Request not found", 404));
-
+        
+        console.log("----------------- (4)");
         if (status === "accepted") {
+            console.log("----------------- (5)");
             const findMeAndUpdate = await User.findByIdAndUpdate(user._id, {
                 $pull:{friendRequests:findRequestAndUpdate._id},
                 $push:{friends:findRequestAndUpdate.from}
             }, {new:true});
-    
+            console.log("----------------- (6)");
+            
             if (!findMeAndUpdate) return next(new ErrorHandler("Error occured", 500));
             
+            console.log("----------------- (7)");
             const findSenderAndUpdate = await User.findByIdAndUpdate(findRequestAndUpdate.from, {
                 $push:{friends:user._id}
             }, {new:true});
             
+            console.log("----------------- (8)");
             if (!findSenderAndUpdate) return next(new ErrorHandler("Error occured", 500));
-
+            
             console.log({findRequestAndUpdate});
             
-
-            sendMessageToSocketId({userIDs:[findRequestAndUpdate.from.toString()], eventName:"replyFriendRequest", message:{requestID:findRequestAndUpdate._id.toString(), requestReceiverName:user.name}});
-        }
-        else {
+            //const singleReq = {
+                //    _id:findRequestAndUpdate._id,
+                //    from:{
+                    //        _id:user._id,
+                    //        name:user.name,
+                    //        email:user.email
+            //    },
+            //    to:{
+                //        _id:findRequestAndUpdate._id,
+                //        name:findRequestAndUpdate.name,
+                //        email:findRequestAndUpdate.email
+                //    },
+                //    date:createRequest.createdAt
+                //};
+                
+                
+                sendMessageToSocketId({userIDs:[findRequestAndUpdate.from.toString()], eventName:"replyFriendRequest", message:{requestID:findRequestAndUpdate._id.toString(), requestReceiverName:user.name}});
+            }
+            else {
+            console.log("----------------- (9)");
             const findMeAndUpdate = await User.findByIdAndUpdate(user._id, {
                 $pull:{friendRequests:findRequestAndUpdate._id}
             }, {new:true});
-    
+            
+            console.log("----------------- (10)");
             if (!findMeAndUpdate) return next(new ErrorHandler("Error occured", 500));    
         }
         
         
+        console.log("----------------- (11)");
         res.status(200).json({success:true, message:"Request accepted", jsonData:{}});
     } catch (error) {
+        console.log("----------------- (12)");
         console.log(error);
         next(error);
     }

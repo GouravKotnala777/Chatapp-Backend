@@ -6,7 +6,7 @@ const notificationRouter = express.Router();
 
 notificationRouter.route("/all").get(isUserAuthenticated, myNotifications);
 notificationRouter.route("/create").post(isUserAuthenticated, createNotification);
-notificationRouter.route("/watch").put(isUserAuthenticated, watchNotification);
+notificationRouter.route("/watch").get(isUserAuthenticated, watchNotification);
 notificationRouter.route("/remove").delete(isUserAuthenticated, removeNotification);
 notificationRouter.route("/update").put(isUserAuthenticated, updateNotificationStatus);
 

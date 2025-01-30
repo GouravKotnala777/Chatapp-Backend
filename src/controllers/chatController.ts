@@ -62,7 +62,10 @@ export const singleChatMessages = async(req:Request, res:Response, next:NextFunc
     try {
         const {
             chatID
-        }:{chatID:string} = req.body;
+        }:{chatID?:string} = req.query;
+        //const {
+        //    chatID
+        //}:{chatID:string} = req.body;
         const userID = (req as AuthenticatedRequestTypes).user._id;
 
         console.log({chatID});

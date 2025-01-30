@@ -8,7 +8,7 @@ chatRouter.route("/new").post(isUserAuthenticated, createChat);
 chatRouter.route("/my_chats").get(isUserAuthenticated, myChats);
 chatRouter.route("/add-remove-admin").put(isUserAuthenticated, addRemoveAdmin);
 chatRouter.route("/remove_members").put(isUserAuthenticated, removeMembers);
-chatRouter.route("/selected_chat").post(isUserAuthenticated, singleChatMessages)
+chatRouter.route("/selected_chat").get(isUserAuthenticated, singleChatMessages)
                             .put(isUserAuthenticated, updateChat)
                             .delete(isUserAuthenticated, deleteChat);
 
