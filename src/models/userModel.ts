@@ -148,7 +148,7 @@ userSchema.methods.comparePassword = async function(password:string){
 }
 
 userSchema.methods.generateToken = async function (userID:mongoose.Types.ObjectId) {
-  return jsonwebtoken.sign({id:userID}, "thisissecret", {expiresIn:"3d"});
+  return jsonwebtoken.sign({id:userID}, process.env.TOKEN_PRIVATE_KEY as string, {expiresIn:"3d"});
 }
 
 const userModel:Model<UserTypes> = mongoose.models.User || mongoose.model<UserTypes>("User", userSchema);
