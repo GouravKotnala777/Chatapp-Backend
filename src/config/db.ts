@@ -1,13 +1,15 @@
 import mongoose from "mongoose";
 
-const connectDatabase = () => {
-    mongoose.connect(process.env.DATABASE_URI as string, {
-        dbName:"ChatApp1"
-    }).then(() => {
+async function connectDatabase(){
+    try {
+        const databaseURI = process.env.DATABASE_URI;
+        if (!databaseURI) throw Error("databaseURI is undefined");
+        await mongoose.connect(databaseURI);
         console.log("Database....");
-    }).catch((error) => {
+    } catch (error) {
         console.log(error);
-    });
+        console.log("db mai koi error hai");
+    }
 };
 
 export default connectDatabase;
